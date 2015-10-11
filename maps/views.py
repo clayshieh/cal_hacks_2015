@@ -59,9 +59,10 @@ def report(request):
 				return HttpResponse("created")
 			else:
 				route = route[0]
-				route.avg -= route.avg / 10
-				route.avg += float(qual) / 10
-				route.save()
+				if route != None or route != "null":
+					route.avg -= route.avg / 10
+					route.avg += float(qual) / 10
+					route.save()
 				return HttpResponse("updated route")
 		except:
 			return HttpResponse(-1)
@@ -77,12 +78,10 @@ def get(request):
 			blng = array[x+3]
 			x+=4
 			route = Route.objects.filter(a_lat=float(alat)).filter(a_lng=float(alng)).filter(b_lat=float(blat)).filter(b_lng=float(blng))
-			print route
 			if len(route)==0:
 				result.append(-1)
 			else:
 				result.append(route[0].avg)
-		print str(result)
 		return HttpResponse(str(result))
 	else:
 		return HttpResponse(-1)

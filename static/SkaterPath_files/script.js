@@ -150,7 +150,6 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				}
 				function postProcess(data, input_for_get) {
 					data = JSON.parse(data);
-					console.log(data)
 					for (i = 0; i < data.length; i +=1) {
 				   		var color;
 				   		var strip = new H.geo.Strip();
@@ -186,6 +185,10 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				        }
 				      });
 				        var rating = prompt("How smooth is this road? Rate 1 - 10","");
+				        if (rating <1 || rating > 10) {
+				        	rating = prompt("Plese enter a value between 1 and 10!")
+				        }
+
 				        var tempStrip = newPolyline.getStrip().Oa;
 				        score = {a: [tempStrip[0], tempStrip[1]], b: [tempStrip[3], tempStrip[4]] , rating:rating};
 				        map.addObject(newPolyline);
