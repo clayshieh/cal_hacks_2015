@@ -13,7 +13,6 @@ def test(request):
 
 def index(request):
 	if request.POST:
-		print request.POST
 		info = request.POST.get('scoreArray')
 		alat = info[0]
 		alng = info[1]
@@ -33,14 +32,12 @@ def index(request):
 	else:
 		try:
 			route = Route.objects.filter(a_lat=alat).filter(a_lng=alng).filter(b_lat=blat).filter(blng)
-			print route.color_index
 		except:
-			print "hi"
+			pass
 	return render(request, 'index.html', {})
 
 def report(request):
 	if request.POST:
-		print request.POST
 		a = request.POST.getlist("a[]")
 		b = request.POST.getlist("b[]")
 		alat = a[0]
@@ -61,7 +58,6 @@ def report(request):
 				route.save()
 				return HttpResponse("created")
 			else:
-				print "hi"
 				route = route[0]
 				route.avg -= route.avg / 10
 				route.avg += float(qual) / 10
@@ -71,17 +67,22 @@ def report(request):
 			return HttpResponse(-1)
 def get(request):
 	if request.POST:
-		alat = request.POST.get("lat1")
-		alng = request.POST.get("lng1")
-		blat = request.POST.get("lat2")
-		blng = request.POST.get("lng2")
-		print alat, alng, blat, blng
-		try:
-			print Route.objects.all()
+		result = []
+		array = request.POST.getlist("dict[]")
+		x = 0
+		while x < len(array):
+			alat = array[x]
+			alng = array[x+1]
+			blat = array[x+2]
+			blng = array[x+3]
+			x+=4
 			route = Route.objects.filter(a_lat=float(alat)).filter(a_lng=float(alng)).filter(b_lat=float(blat)).filter(b_lng=float(blng))
-			return HttpResponse(route[0].avg)
-		except Exception as e:
-			return HttpResponse(-1)
+			print route
+			if len(route)==0:
+				result.append(-1)
+			else:
+				result.append(route[0].avg)
+		print str(result)
+		return HttpResponse(str(result))
 	else:
-		print "2"
 		return HttpResponse(-1)

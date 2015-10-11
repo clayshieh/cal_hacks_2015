@@ -70,15 +70,13 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				 $.ajaxSetup({async: false});
 				  map.addEventListener('dbltap', function(evt) {
 				      // Log 'tap' and 'mouse' events:
-				      console.log(evt.type, evt.currentPointer);
 				      x = evt.currentPointer.viewportX;
 				      y = evt.currentPointer.viewportY;
 				      var pt = map.screenToGeo(x, y);
-				      console.log(pt);
 				      coords.push(pt);
 				      addMarkersToMap(map, pt.lat, pt.lng);
 				      num_marker +=1;
-				      if (num_marker ==2) {
+				      if (num_marker %2 == 0) {
 				        calculateRouteFromAtoB(platform);
 				        route_counter +=1;
 				      }
@@ -107,7 +105,6 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 
 				function onSuccess(result) {
 				  var route = result.response.route[0];
-				  console.log(route);
 				 /*
 				  * The styling of the route response on the map is entirely under the developer's control.
 				  * A representitive styling can be found the full JS + HTML code of this example
@@ -128,7 +125,7 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				    var parts = point.split(',');
 				    pointsArray.push({"lat": parts[0], "lng": parts[1]});
 				    });
-				    createPolyline(pointsArray, 0);
+				    createPolyline(pointsArray);
 
 				  // Add the polyline to the map
 				  //map.addObject(polyline);
@@ -136,33 +133,40 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				  //map.setViewBounds(polyline.getBounds(), true);
 				}
 
-				function createPolyline (pointsArray, i){
-				   var strip = new H.geo.Strip();
-				   var color;
-				   if (i == pointsArray.length - 1) {
-				   	return;
+				function createPolyline (pointsArray){
+				   var input_for_get = [];
+				   for (i = 0 ; i < pointsArray.length - 1; i++) {
+				  		input_for_get.push(pointsArray[i].lat);
+				  		input_for_get.push(pointsArray[i].lng);
+				  		input_for_get.push(pointsArray[i + 1].lat);
+				  		input_for_get.push(pointsArray[i + 1].lng);
 				   }
-				   strip.pushLatLngAlt(pointsArray[i].lat, pointsArray[i].lng);
-				   strip.pushLatLngAlt(pointsArray[i+1].lat, pointsArray[i+1].lng);
-				 	console.log(strip);
-				   $.post("/maps/get/", {lat1:pointsArray[i].lat, lng1:pointsArray[i].lng, lat2:pointsArray[i+1].lat, lng2:pointsArray[i+1].lng})
+				   var input_obj = {dict:input_for_get};
+				   $.post("/maps/get/", input_obj)
 				   .done (function (data) {
-				   	console.log(data);
-				   	if (data == -1) {
-				   		color = "gray";
-				   	} else if (data < 3) {
-				   		color = "red";
-				   	} else if (data <7) {
-				   		color = "yellow";
-				   	} else {
-				   		color = "green";
-				   	}
-				   	drawLine(strip, color);
-				   	createPolyline(pointsArray, i + 1);
-				   	return;
+				   	
+				   	postProcess(data, input_for_get);
 				   });
-
-				  
+				}
+				function postProcess(data, input_for_get) {
+					data = JSON.parse(data);
+					console.log(data)
+					for (i = 0; i < data.length; i +=1) {
+				   		var color;
+				   		var strip = new H.geo.Strip();
+				   		strip.pushLatLngAlt(input_for_get[4*i], input_for_get[4*i+1]);
+				   		strip.pushLatLngAlt(input_for_get[4*i+2], input_for_get[4*i+3]);
+				   		if (data[i] == -1) {
+				   			color = 'gray';
+				   		} else if (data[i] <3) {
+				   			color = 'red';
+				   		} else if (data[i] < 7) {
+				   			color = 'yellow';
+				   		} else {
+				   			color = 'green';
+				   		}
+				   		drawLine(strip, color);
+				   }
 				}
 
 				function drawLine(strip, color) {
@@ -172,12 +176,9 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				          strokeColor: color
 				        }
 				      });
-				      console.log(polyline);
 				      polyline.addEventListener('tap', function(evt){
-				        console.log(evt.type, evt.currentPointer.type);
 				        //Change color of polyline segment
 				        strip = evt.target.getStrip();
-				        console.log(strip);
 				        var newPolyline = new H.map.Polyline(strip, {
 				        style: {
 				          lineWidth: 8,
@@ -188,7 +189,6 @@ document.getElementById("feedbackButton").addEventListener("click", function(){
 				        var tempStrip = newPolyline.getStrip().Oa;
 				        score = {a: [tempStrip[0], tempStrip[1]], b: [tempStrip[3], tempStrip[4]] , rating:rating};
 				        map.addObject(newPolyline);
-				        console.log(score);
 				        map.removeObject(evt.target);
 				        $.post("/maps/report/", score);
 				    });
