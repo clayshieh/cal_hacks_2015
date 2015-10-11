@@ -76,6 +76,18 @@ document.getElementById("searchButton").addEventListener("click", function(){
 
 				  });
 
+				  map.addEventListener('longpress', function(evt) {
+				      // Log 'tap' and 'mouse' events:
+				     x = evt.currentPointer.viewportX;
+				     y = evt.currentPointer.viewportY;
+				     var pt = map.screenToGeo(x, y);
+				     var icon = new H.map.Icon("http://127.0.0.1:8000/media/danger.png"),
+				   
+				    marker = new H.map.Marker({lat:pt.lat,lng:pt.lng}, {icon: icon});
+
+					map.addObject(marker);
+
+				  });
 				//Routing algorithm
 				function calculateRouteFromAtoB (platform) {
 				  var router = platform.getRoutingService(),
@@ -141,6 +153,7 @@ document.getElementById("searchButton").addEventListener("click", function(){
 				   	postProcess(data, input_for_get);
 				   });
 				}
+
 				function postProcess(data, input_for_get) {
 					data = JSON.parse(data);
 					for (i = 0; i < data.length; i +=1) {
