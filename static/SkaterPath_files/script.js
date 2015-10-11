@@ -63,18 +63,23 @@ document.getElementById("searchButton").addEventListener("click", function(){
 				 $.ajaxSetup({async: false});
 				  map.addEventListener('dbltap', function(evt) {
 				      // Log 'tap' and 'mouse' events:
+				      console.log(evt.type, evt.currentPointer);
 				      x = evt.currentPointer.viewportX;
 				      y = evt.currentPointer.viewportY;
 				      var pt = map.screenToGeo(x, y);
+				      console.log(pt);
 				      coords.push(pt);
 				      addMarkersToMap(map, pt.lat, pt.lng);
 				      num_marker +=1;
-				      if (num_marker %2 == 0) {
+				      if(num_marker ==1){
+				        coordToAddress(pt);
+				      }
+				      if (num_marker == 2) {
 				        calculateRouteFromAtoB(platform);
-				        route_counter +=1;
 				      }
 
 				  });
+
 
 				  map.addEventListener('longpress', function(evt) {
 				      // Log 'tap' and 'mouse' events:
@@ -107,6 +112,54 @@ document.getElementById("searchButton").addEventListener("click", function(){
 				    onError
 				  );
 				}
+
+				function updateTextArea(id,addressAsString){
+				    if(markerCount%2==1){
+				        document.getElementById("start_add").value=addressAsString;
+				    }else if(markerCount%2 ==0){
+				        document.getElementById("end_add").value=addressAsString;
+				    }
+				}
+
+
+				// Get an instance of the geocoding service:
+				var geocoder = platform.getGeocodingService();
+
+				function coordToAddress(point){
+				  // Create the parameters for the reverse geocoding request:
+				  var pointString = "" + point.lat + "," + point.lng + "," + 100;
+				  var reverseGeocodingParameters = {
+				        prox: pointString,
+				        mode: 'retrieveAddresses',
+				        maxresults: 1,
+				        jsonattributes: 1
+				  };
+				  geocoder.reverseGeocode(
+				    reverseGeocodingParameters,
+				    onReverseSuccess,
+				    onError);
+				}
+
+				//reverse Geo
+				var addressAsString;
+				var markerCount = 0;
+
+				// Define a callback function to process the response:
+				function onReverseSuccess(result) {
+				  //Check if view contains anything
+				  if(result.response.view.length > 0){
+				    var location = result.response.view[0].result[0];
+				    addressAsString = location.location.address.label;
+				    console.log("Address just found: ", addressAsString);
+				    markerCount++;
+				    //TODO: Add address to start address action form here
+				    	    if(markerCount%2==1){
+				        document.getElementById("start_add").value=addressAsString;
+				    }else if(markerCount%2 ==0){
+				        document.getElementById("end_add").value=addressAsString;
+				    }
+				  }
+				};
 
 				function onSuccess(result) {
 				  var route = result.response.route[0];
