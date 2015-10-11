@@ -35,6 +35,25 @@ def index(request):
 		except:
 			pass
 	return render(request, 'index.html', {})
+def slow(request):
+	return render(request, 'index_slow.html', {})
+	
+def get_slow(request):
+	if request.POST:
+		alat = request.POST.get("lat1")
+		alng = request.POST.get("lng1")
+		blat = request.POST.get("lat2")
+		blng = request.POST.get("lng2")
+		print alat, alng, blat, blng
+		try:
+			print Route.objects.all()
+			route = Route.objects.filter(a_lat=float(alat)).filter(a_lng=float(alng)).filter(b_lat=float(blat)).filter(b_lng=float(blng))
+			return HttpResponse(route[0].avg)
+		except Exception as e:
+			return HttpResponse(-1)
+	else:
+		print "2"
+		return HttpResponse(-1)
 
 def report(request):
 	if request.POST:

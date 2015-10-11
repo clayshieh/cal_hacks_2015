@@ -11,4 +11,6 @@ urlpatterns = patterns('',
     url(r'^test/$', views.test, name='test'),
     url(r'^report/$', views.report, name='report'),
     url(r'^get/$', views.get, name='get'),
+    url(r'^slow/$', views.slow, name='slow'),
+    url(r'^get_slow/$', views.get, name='get'),
 )
